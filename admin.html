@@ -83,7 +83,7 @@ body {
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
   display: flex;
   gap: 20px;
-  align-items: center;
+  align-items: flex-start;
 }
 .student-card img {
   width: 120px;
@@ -127,7 +127,7 @@ const firebaseConfig={
   apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
   authDomain:"admissionportal-ec954.firebaseapp.com",
   projectId:"admissionportal-ec954",
-  storageBucket:"admissionportal-ec954.firebasestorage.app",
+  storageBucket:"admissionportal-ec954.appspot.com",
   messagingSenderId:"182457612989",
   appId:"1:182457612989:web:dcaa6939ea96cd5f8cd5d4"
 };
@@ -178,6 +178,7 @@ document.getElementById('search-btn').addEventListener('click', async ()=>{
       <p><b>Sex:</b> ${data.sex}</p>
       <p><b>Email:</b> ${data.email}</p>
       <p><b>Phone:</b> ${data.phone}</p>
+      <p><b>Address:</b> ${data.street}, ${data.houseNumber}, ${data.province}, ${data.zip}</p>
       <p><b>Course:</b> ${data.course}</p>
       <p><b>Track:</b> ${data.track}</p>
     `;
