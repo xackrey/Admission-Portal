@@ -16,33 +16,44 @@ body {
   align-items: center;
   min-height: 100vh;
   color: #fff;
+  overflow: hidden;
 }
 
 .container {
-  background: rgba(255,255,255,0.1);
-  padding: 40px;
-  border-radius: 20px;
+  background: rgba(255,255,255,0.15);
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
   width: 90%;
   max-width: 500px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
   backdrop-filter: blur(10px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  transition: all 0.5s ease;
 }
 
-.container h1 {
+.container img.logo {
+  width: 80px;
+  border-radius: 50%;
+  margin-bottom: 15px;
+  border: 2px solid #fff;
+}
+
+h1 {
   margin-bottom: 20px;
   font-size: 28px;
+  letter-spacing: 1px;
 }
 
+/* Buttons */
 button {
+  margin-top: 20px;
   padding: 12px 25px;
-  font-size: 16px;
   border: none;
   border-radius: 10px;
-  cursor: pointer;
   background: linear-gradient(90deg, #3498db, #9b59b6);
   color: #fff;
   font-weight: bold;
+  cursor: pointer;
   transition: 0.3s;
 }
 
@@ -50,66 +61,69 @@ button:hover {
   background: linear-gradient(90deg, #2980b9, #8e44ad);
 }
 
-#map {
+/* Map */
+#mapContainer {
+  margin-top: 25px;
+  display: block;
   width: 100%;
-  height: 300px;
+  height: 350px;
   border-radius: 12px;
-  margin-top: 20px;
-  display: none;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+#mapContainer iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 12px;
 }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <img src="logo.jpg" alt="School Logo" style="width:80px; border-radius:50%; border:2px solid #fff; margin-bottom:20px;">
+<!-- Login Container -->
+<div class="container" id="loginContainer">
+  <img src="logo.jpg" alt="School Logo" class="logo">
   <h1>LYFJRSHS Admission Portal</h1>
-  <p>Login using your Gmail account</p>
-
-  <!-- Google Sign-In -->
-  <div id="g_id_onload" 
-       data-client_id="113380731276-thphd4f39c218f40b6e47lk09ndomd35.apps.googleusercontent.com" 
-       data-callback="handleLogin">
+<p>Login using your Gmail account</p>
+  <!-- Google Login -->
+  <div id="g_id_onload"
+       data-client_id="113380731276-thphd4f39c218f40b6e47lk09ndomd35.apps.googleusercontent.com"
+       data-callback="handleLogin"
+       data-auto_prompt="false">
   </div>
   <div class="g_id_signin"></div>
+</div>
 
-  <!-- Start Button -->
-  <div id="start-section" style="display:none; margin-top:20px;">
-    <button id="start-btn">Start</button>
+<!-- Start Container -->
+<div class="container" id="startContainer" style="display:none;">
+  <img src="logo.jpg" alt="School Logo" class="logo">
+  <h1>Welcome!</h1>
+  <p>School Location:</p>
+  <div id="mapContainer">
+    <iframe 
+      src="https://www.google.com/maps?q=LYFJRSHS+Senior+High+School+Philippines&output=embed" 
+      allowfullscreen
+      loading="lazy">
+    </iframe>
   </div>
-
-  <!-- Map -->
-  <div id="map"></div>
+  <button id="startBtn">Start Application</button>
 </div>
 
 <script>
 // Google login callback
 function handleLogin(response) {
-  console.log("Google login success:", response);
-  document.querySelector('.g_id_signin').style.display = 'none';
-  document.getElementById('start-section').style.display = 'block';
+  console.log("Google login success", response);
+  alert("Login successful!");
+  document.getElementById('loginContainer').style.display = 'none';
+  document.getElementById('startContainer').style.display = 'block';
 }
 
-// Start button event
-document.getElementById('start-btn').addEventListener('click', () => {
-  document.getElementById('map').style.display = 'block';
-  showMap();
+// Start button redirects to ApplicationProfile.html
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  window.location.href = "ApplicationProfile.html";
 });
-
-// Show Google Map with school pin
-function showMap() {
-  const mapDiv = document.getElementById('map');
-  mapDiv.innerHTML = `
-    <iframe 
-      width="100%" 
-      height="100%" 
-      style="border:0" 
-      loading="lazy" 
-      allowfullscreen
-      src="https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=LYFJRSHS+Senior+High+School+Philippines">
-    </iframe>
-  `;
-}
 </script>
 
 </body>
