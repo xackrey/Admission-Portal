@@ -10,94 +10,70 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  background: linear-gradient(135deg,#6a11cb,#2575fc);
   display: flex;
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
 }
-
 .container {
-  background: linear-gradient(145deg, #ffffffdd, #f0f0f0dd);
+  background: linear-gradient(145deg,#ffffffdd,#f0f0f0dd);
   width: 95%;
   max-width: 700px;
   border-radius: 15px;
   padding: 30px;
   margin: 30px 0;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  box-shadow:0 6px 20px rgba(0,0,0,0.3);
 }
-
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
 }
-.header h2 { margin: 0; color: #2c3e50; }
+.header h2{margin:0;color:#2c3e50;}
 .logout-btn {
-  padding: 8px 15px;
-  border: none;
-  background-color: #e74c3c;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.3s;
+  padding:8px 15px;
+  border:none;
+  background-color:#e74c3c;
+  color:#fff;
+  font-weight:bold;
+  border-radius:6px;
+  cursor:pointer;
+  transition:0.3s;
 }
-.logout-btn:hover { background-color: #c0392b; }
-
+.logout-btn:hover{background-color:#c0392b;}
 .user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 25px;
-  background: linear-gradient(90deg, #3498db, #9b59b6);
-  padding: 10px 15px;
-  border-radius: 8px;
-  color: #fff;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:25px;
+  background:linear-gradient(90deg,#3498db,#9b59b6);
+  padding:10px 15px;
+  border-radius:8px;
+  color:#fff;
 }
-.user-info img { width: 40px; border-radius: 50%; border: 2px solid #fff; }
-.user-info span { font-weight: bold; }
-
-form label {
-  font-weight: bold;
-  margin-top: 10px;
-  display: block;
-  color: #2c3e50;
-}
+.user-info img {width:40px;border-radius:50%;border:2px solid #fff;}
+form label{font-weight:bold;margin-top:10px;display:block;color:#2c3e50;}
 form input, form select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 6px;
-  border: 1px solid #3498db;
-  box-sizing: border-box;
-  transition: 0.3s;
+  width:100%; padding:10px;margin-top:5px;border-radius:6px;border:1px solid #3498db;box-sizing:border-box;transition:0.3s;
 }
-form input:focus, form select:focus { border-color: #9b59b6; outline: none; }
-
-form button {
-  margin-top: 20px;
-  background: linear-gradient(90deg, #3498db, #9b59b6);
-  color: #fff;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: 0.3s;
+form input:focus, form select:focus{border-color:#9b59b6;outline:none;}
+form button{
+  margin-top:20px;
+  background:linear-gradient(90deg,#3498db,#9b59b6);
+  color:#fff;font-weight:bold;border:none;cursor:pointer;border-radius:8px;transition:0.3s;
 }
-form button:hover {
-  background: linear-gradient(90deg, #2980b9, #8e44ad);
+form button:hover{
+  background:linear-gradient(90deg,#2980b9,#8e44ad);
 }
-
-#photo-preview img {
-  width: 120px;
-  margin-top: 10px;
-  border-radius: 6px;
-  border: 2px solid #3498db;
+#photo-preview img{
+  width:120px;
+  margin-top:10px;
+  border-radius:6px;
+  border:2px solid #3498db;
 }
-
-h3 { margin-top: 20px; color: #2c3e50; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+h3 {margin-top:20px;color:#2c3e50;border-bottom:1px solid #ccc;padding-bottom:5px;}
 </style>
 </head>
 <body>
@@ -149,6 +125,19 @@ h3 { margin-top: 20px; color: #2c3e50; border-bottom: 1px solid #ccc; padding-bo
     <label>Phone Number</label>
     <input type="text" id="phone" placeholder="Phone Number" required>
 
+    <h3>Address</h3>
+    <label>Street / Subdivision</label>
+    <input type="text" id="street" placeholder="Street / Subdivision" required>
+
+    <label>House Number</label>
+    <input type="text" id="houseNumber" placeholder="House Number" required>
+
+    <label>Province / Region</label>
+    <input type="text" id="province" placeholder="Province / Region" required>
+
+    <label>Zip Code</label>
+    <input type="text" id="zip" placeholder="Zip Code" required>
+
     <label>Course</label>
     <select id="course" required>
       <option value="">Select Course</option>
@@ -175,77 +164,52 @@ h3 { margin-top: 20px; color: #2c3e50; border-bottom: 1px solid #ccc; padding-bo
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig={
-  apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
-  authDomain:"admissionportal-ec954.firebaseapp.com",
-  projectId:"admissionportal-ec954",
-  storageBucket:"admissionportal-ec954.appspot.com",
-  messagingSenderId:"182457612989",
-  appId:"1:182457612989:web:dcaa6939ea96cd5f8cd5d4"
+const firebaseConfig = {
+  apiKey: "AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
+  authDomain: "admissionportal-ec954.firebaseapp.com",
+  projectId: "admissionportal-ec954",
+  storageBucket: "admissionportal-ec954.appspot.com",
+  messagingSenderId: "182457612989",
+  appId: "1:182457612989:web:dcaa6939ea96cd5f8cd5d4"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Logout
-document.getElementById('logout').addEventListener('click', ()=>{
-  alert('Logged out!');
-  window.location.href = 'index.html';
-});
+document.getElementById('logout').addEventListener('click', ()=>{ alert('Logged out!'); window.location.href='index.html'; });
 
 // Photo preview
 document.getElementById('photo-upload').addEventListener('change', e=>{
-  const file = e.target.files[0];
-  const preview=document.getElementById('photo-preview'); preview.innerHTML='';
-  if(file){
-    const reader=new FileReader();
-    reader.onload=function(event){
-      const img=document.createElement('img');
-      img.src=event.target.result;
-      preview.appendChild(img);
-    }
-    reader.readAsDataURL(file);
-  }
+  const file=e.target.files[0]; const preview=document.getElementById('photo-preview'); preview.innerHTML='';
+  if(file){const reader=new FileReader(); reader.onload=function(event){const img=document.createElement('img'); img.src=event.target.result; preview.appendChild(img); }
+  reader.readAsDataURL(file);}
 });
 
 // Dynamic Track based on Course
-const courseSelect = document.getElementById('course');
-const trackSelect = document.getElementById('track');
-const courseTracks = {
-  'TVL': ['HE', 'CP', 'CSS', 'IA'],
-  'STEM': ['Science', 'Math', 'Engineering'],
-  'HUMSS': ['Social Science', 'Humanities'],
-  'ABM': ['Accounting', 'Business', 'Management']
-};
-
-courseSelect.addEventListener('change', () => {
+const courseSelect=document.getElementById('course');
+const trackSelect=document.getElementById('track');
+const courseTracks = { 'TVL':['HE','CP','CSS','IA'], 'STEM':['Science','Math','Engineering'], 'HUMSS':['Social Science','Humanities'], 'ABM':['Accounting','Business','Management']};
+courseSelect.addEventListener('change',()=>{
   const selectedCourse = courseSelect.value;
-  trackSelect.innerHTML = '<option value="">Select Track</option>';
+  trackSelect.innerHTML='<option value="">Select Track</option>';
   if(courseTracks[selectedCourse]){
-    courseTracks[selectedCourse].forEach(track => {
-      const option = document.createElement('option');
-      option.value = track;
-      option.textContent = track;
-      trackSelect.appendChild(option);
-    });
+    courseTracks[selectedCourse].forEach(track=>{ const opt=document.createElement('option'); opt.value=track; opt.textContent=track; trackSelect.appendChild(opt); });
   }
 });
 
-// Submit form with one-time registration per LRN
+// Submit form with single registration per LRN
 document.getElementById('applicantForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  const lrnValue = document.getElementById('lrn').value.trim();
-  if(!lrnValue){ alert("Enter LRN"); return; }
+  const lrnVal = document.getElementById('lrn').value.trim();
+  if(!lrnVal){ alert("Please enter your LRN."); return; }
 
-  const q = query(collection(db,'applications'), where('lrn','==',lrnValue));
+  const q = query(collection(db,'applications'),where('lrn','==',lrnVal));
   const querySnapshot = await getDocs(q);
-  if(!querySnapshot.empty){
-    alert("This LRN is already registered!");
-    return;
-  }
+  if(!querySnapshot.empty){ alert("This LRN is already registered!"); return; }
 
-  const data = {
-    lrn: lrnValue,
+  const data={
+    lrn: lrnVal,
     givenName: document.getElementById('givenName').value,
     middleName: document.getElementById('middleName').value,
     surname: document.getElementById('surname').value,
@@ -254,20 +218,22 @@ document.getElementById('applicantForm').addEventListener('submit', async e=>{
     sex: document.getElementById('sex').value,
     email: document.getElementById('email').value,
     phone: document.getElementById('phone').value,
+    street: document.getElementById('street').value,
+    houseNumber: document.getElementById('houseNumber').value,
+    province: document.getElementById('province').value,
+    zip: document.getElementById('zip').value,
     course: document.getElementById('course').value,
     track: document.getElementById('track').value,
     photo: document.getElementById('photo-preview').querySelector('img')?.src || ''
   };
 
   try{
-    await addDoc(collection(db,'applications'), data);
+    await addDoc(collection(db,'applications'),data);
     alert('Profile submitted successfully!');
-    e.target.reset();
-    document.getElementById('photo-preview').innerHTML='';
-  }catch(err){
-    alert('Error saving: '+err.message);
-  }
+    e.target.reset(); document.getElementById('photo-preview').innerHTML='';
+  }catch(err){ alert('Error saving: '+err.message);}
 });
 </script>
+
 </body>
 </html>
