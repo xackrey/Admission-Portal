@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel - LYFJRSHS</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <style>
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,6 +36,7 @@ body {
   margin-bottom: 20px;
 }
 .header h2 { margin: 0; color: #2c3e50; }
+
 .logout-btn {
   padding: 8px 15px;
   border: none;
@@ -54,12 +55,14 @@ body {
   gap: 10px;
   margin-bottom: 20px;
 }
+
 #search-input {
   flex: 1;
   padding: 10px;
   border-radius: 6px;
   border: 1px solid #3498db;
 }
+
 #search-btn {
   padding: 10px 20px;
   border-radius: 6px;
@@ -69,11 +72,12 @@ body {
   cursor: pointer;
   font-weight: bold;
 }
+
 #search-btn:hover {
   background: linear-gradient(90deg, #2980b9, #8e44ad);
 }
 
-/* Student info card */
+/* Student card */
 .student-card {
   background: #fff;
   color: #2c3e50;
@@ -85,14 +89,24 @@ body {
   gap: 20px;
   align-items: flex-start;
 }
+
 .student-card img {
   width: 120px;
-  border-radius: 6px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
   border: 2px solid #3498db;
 }
+
 .student-details {
   flex: 1;
 }
+
+.student-details h3 {
+  margin: 0 0 10px 0;
+  color: #3498db;
+}
+
 .student-details p {
   margin: 5px 0;
   font-weight: bold;
@@ -108,20 +122,19 @@ body {
     <button class="logout-btn" id="logout">Logout</button>
   </div>
 
-  <!-- Search Bar -->
+  <!-- Search -->
   <div id="search-container">
-    <input type="text" id="search-input" placeholder="Enter LRN to search">
+    <input type="text" id="search-input" placeholder="Enter LRN or Name">
     <button id="search-btn">Search</button>
   </div>
 
-  <!-- Result container -->
   <div id="result"></div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
@@ -135,58 +148,67 @@ const firebaseConfig={
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Logout
+/* Logout */
 document.getElementById('logout').addEventListener('click', ()=>{
   alert('Logged out!');
   window.location.href = 'index.html';
 });
 
-// Search student by LRN
+/* Search */
 document.getElementById('search-btn').addEventListener('click', async ()=>{
-  const lrn = document.getElementById('search-input').value.trim();
+  const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
   const resultDiv = document.getElementById('result');
   resultDiv.innerHTML = '';
 
-  if(!lrn){
-    alert('Please enter an LRN.');
+  if(!searchValue){
+    alert('Please enter LRN or Name.');
     return;
   }
 
-  const q = query(collection(db,'applications'), where('lrn','==',lrn));
-  const querySnapshot = await getDocs(q);
+  const snapshot = await getDocs(collection(db,'applications'));
 
-  if(querySnapshot.empty){
-    resultDiv.innerHTML = '<p>No student found with that LRN.</p>';
-    return;
-  }
+  let foundStudent = null;
 
-  querySnapshot.forEach(doc=>{
+  snapshot.forEach(doc=>{
+    if(foundStudent) return;
+
     const data = doc.data();
-    const card = document.createElement('div');
-    card.className = 'student-card';
+    const fullName = `${data.givenName} ${data.middleName || ''} ${data.surname}`.toLowerCase();
 
-    const img = document.createElement('img');
-    img.src = data.photo || 'logo.jpg';
-
-    const details = document.createElement('div');
-    details.className = 'student-details';
-    details.innerHTML = `
-      <p><b>LRN:</b> ${data.lrn}</p>
-      <p><b>Name:</b> ${data.givenName} ${data.middleName || ''} ${data.surname}</p>
-      <p><b>Date of Birth:</b> ${data.dob}</p>
-      <p><b>Place of Birth:</b> ${data.birthPlace}</p>
-      <p><b>Sex:</b> ${data.sex}</p>
-      <p><b>Email:</b> ${data.email}</p>
-      <p><b>Phone:</b> ${data.phone}</p>
-      <p><b>Address:</b> ${data.street}, ${data.houseNumber}, ${data.province}, ${data.zip}</p>
-      <p><b>Course:</b> ${data.course}</p>
-      <p><b>Track:</b> ${data.track}</p>
-    `;
-
-    card.appendChild(img);
-    card.appendChild(details);
-    resultDiv.appendChild(card);
+    if(data.lrn === searchValue || fullName.includes(searchValue)){
+      foundStudent = data;
+    }
   });
+
+  if(!foundStudent){
+    resultDiv.innerHTML = '<p>No student found.</p>';
+    return;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'student-card';
+
+  const img = document.createElement('img');
+  img.src = foundStudent.photo || 'logo.jpg';
+
+  const details = document.createElement('div');
+  details.className = 'student-details';
+  details.innerHTML = `
+    <h3>${foundStudent.givenName} ${foundStudent.middleName || ''} ${foundStudent.surname}</h3>
+    <p><b>LRN:</b> ${foundStudent.lrn}</p>
+    <p><b>Date of Birth:</b> ${foundStudent.dob}</p>
+    <p><b>Place of Birth:</b> ${foundStudent.birthPlace}</p>
+    <p><b>Sex:</b> ${foundStudent.sex}</p>
+    <p><b>Email:</b> ${foundStudent.email}</p>
+    <p><b>Phone:</b> ${foundStudent.phone}</p>
+    <p><b>Address:</b> ${foundStudent.street}, ${foundStudent.houseNumber}, ${foundStudent.province}, ${foundStudent.zip}</p>
+    <p><b>Course:</b> ${foundStudent.course}</p>
+    <p><b>Track:</b> ${foundStudent.track}</p>
+  `;
+
+  card.appendChild(img);
+  card.appendChild(details);
+  resultDiv.appendChild(card);
 });
 </script>
 
