@@ -15,7 +15,8 @@ body{margin:0;font-family:'Segoe UI',sans-serif;background:linear-gradient(135de
 .info p{margin:5px 0;font-size:14px;}
 .button-group{margin-top:15px;display:flex;gap:10px;}
 button{flex:1;padding:10px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;color:white;font-size:14px;transition:0.3s;}
-#editBtn{background:#1976d2;} #logoutBtn{background:#e74c3c;} button:hover{opacity:0.9;}
+#logoutBtn{background:#e74c3c;} 
+button:hover{opacity:0.9;}
 input[type="file"]{display:none;}
 #stemSchedule{display:none;margin-top:15px;background:#e8f5e9;padding:15px;border-radius:10px; border:2px solid #4CAF50;}
 #stemSchedule h3{margin:0 0 10px 0; color:#2e7d32;}
@@ -49,7 +50,6 @@ input[type="file"]{display:none;}
   </div>
 
   <div class="button-group">
-    <button id="editBtn">Edit Info</button>
     <button id="logoutBtn">Logout</button>
   </div>
 </div>
@@ -83,12 +83,21 @@ const sexSpan = document.getElementById('sex');
 const emailSpan = document.getElementById('email');
 const phoneSpan = document.getElementById('phone');
 const addressSpan = document.getElementById('address');
-const editBtn = document.getElementById('editBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const stemDiv = document.getElementById('stemSchedule');
 const examDateP = document.getElementById('examDate');
 const examTimeP = document.getElementById('examTime');
 
+// Change photo preview
+changePhotoBtn.addEventListener('click', ()=>photoInput.click());
+photoInput.addEventListener('change',(e)=>{
+  const file = e.target.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = evt => profilePhoto.src = evt.target.result;
+    reader.readAsDataURL(file);
+  }
+});
 
 // Fetch student info
 const q = query(collection(db,"applications"),where("lrn","==",lrn));
@@ -118,11 +127,9 @@ else{
   }
 }
 
-// Buttons
-
+// Logout
 logoutBtn.addEventListener('click', ()=>window.location.href='index.html');
 </script>
 
 </body>
 </html>
-
