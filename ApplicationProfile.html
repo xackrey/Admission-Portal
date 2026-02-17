@@ -20,7 +20,239 @@ body {
   background: linear-gradient(145deg,#ffffffdd,#f0f0f0dd);
   width: 95%;
   max-width: 700px;
-  border-radius: 15px;
+  border-radius: 15px;<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHS Enrollment Form - LYFJRSHS</title>
+<style>
+body{
+  margin:0;
+  font-family:'Segoe UI', sans-serif;
+  background: linear-gradient(135deg,#4CAF50,#F44336);
+  display:flex;
+  justify-content:center;
+  padding:30px 0;
+}
+.container{
+  background:#fff;
+  width:90%;
+  max-width:850px;
+  border-radius:20px;
+  padding:40px 50px;
+  box-shadow:0 12px 25px rgba(0,0,0,0.3);
+  border-top:8px solid #4CAF50;
+  border-bottom:8px solid #F44336;
+}
+header{text-align:center;margin-bottom:25px;}
+header img{
+  width:90px;
+  margin:0 auto 10px auto;
+  display:block;
+  border-radius:50%;      /* circular logo */
+  border:3px solid #4CAF50;
+  object-fit:cover;
+}
+h1{font-size:30px;font-weight:bold;color:#2c3e50;}
+h3{margin-top:25px;border-bottom:2px solid #ccc;padding-bottom:5px;color:#2c3e50;font-size:20px;}
+label{display:block;margin-top:10px;font-weight:bold;cursor:pointer;}
+input[type="text"], input[type="date"], input[type="email"], input[type="tel"], select{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:6px;
+  border:1px solid #3498db;
+  box-sizing:border-box;
+}
+input[type="radio"], input[type="checkbox"]{margin-right:6px;}
+.section{
+  margin-top:15px;
+  padding:15px;
+  border:1px solid #ccc;
+  border-radius:12px;
+  background:#f9f9f9;
+}
+.nested-specialization{
+  margin-left:25px;
+  margin-top:10px;
+  display:none;
+}
+button{
+  margin-top:25px;
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:8px;
+  background:linear-gradient(90deg,#4CAF50,#F44336);
+  color:white;
+  font-weight:bold;
+  font-size:16px;
+  cursor:pointer;
+  transition:0.3s;
+}
+button:disabled{background:gray;cursor:not-allowed;}
+button:hover:not(:disabled){opacity:0.9;}
+@media(max-width:600px){
+  .container{padding:30px 20px;}
+  h1{font-size:24px;}
+  h3{font-size:18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<header>
+  <img src="logo.jpg" alt="School Logo">
+  <h1>Register Form</h1>
+</header>
+
+<form id="shsForm">
+<h3>Personal Information</h3>
+<label>LRN</label><input type="text" id="lrn" pattern="[0-9]{12}" maxlength="12" required>
+<label>Given Name</label><input type="text" id="givenName" required>
+<label>Middle Name</label><input type="text" id="middleName">
+<label>Surname</label><input type="text" id="surname" required>
+<label>Date of Birth</label><input type="date" id="dob" required>
+<label>Place of Birth</label><input type="text" id="birthPlace" required>
+<label>Sex</label>
+<select id="sex" required><option value="">Select</option><option>Male</option><option>Female</option></select>
+<label>Email</label><input type="email" id="email" required>
+<label>Phone</label><input type="tel" id="phone" required>
+
+<h3>Location</h3>
+<label>Barangay</label><input type="text" id="barangay" required>
+<label>Municipality / City</label><input type="text" id="city" required>
+<label>Province</label><input type="text" id="province" required>
+<label>Region</label><input type="text" id="region" required>
+<label>Zip Code</label><input type="text" id="zip" required>
+
+<h3>Strand</h3>
+<div id="strandSection" class="section"></div>
+<div id="specializationSection" class="section"></div>
+
+<button type="submit" id="submitBtn">Submit Form</button>
+</form>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
+  authDomain:"admissionportal-ec954.firebaseapp.com",
+  projectId:"admissionportal-ec954"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* STRAND OPTIONS */
+const strandSection = document.getElementById("strandSection");
+const specializationSection = document.getElementById("specializationSection");
+const strands = [
+  {code:"HUMSS", name:"Humanities and Social Sciences (HUMSS)"},
+  {code:"ABM", name:"Accountancy, Business, Management (ABM)"},
+  {code:"STEM", name:"Science, Technology, Engineering, Math (STEM)"},
+  {code:"TVL", name:"Technical-Vocational-Livelihood (TVL)"}
+];
+strands.forEach(strand=>{
+  strandSection.innerHTML += `<label><input type="radio" name="strand" value="${strand.code}"> ${strand.name}</label>`;
+});
+
+/* SPECIALIZATIONS */
+const specializations = {
+  "AFA":"Agri-Fishery Arts (AFA)",
+  "HE":"Home Economics (HE)",
+  "IA":"Industrial Arts (IA)",
+  "ICT":"Information and Communication Technology (ICT)"
+};
+const ictNested = {
+  "CP":"Computer Programming (CP)",
+  "CSS":"Computer Systems Servicing (CSS)"
+};
+
+document.querySelectorAll('input[name="strand"]').forEach(radio=>{
+  radio.addEventListener("change", function(){
+    specializationSection.innerHTML = "";
+    document.querySelectorAll('.nested-specialization').forEach(el=>el.style.display='none');
+    if(this.value==="TVL"){
+      specializationSection.innerHTML = "<h3>Specialization</h3>";
+      Object.keys(specializations).forEach(sp=>{
+        const spLabel = document.createElement("label");
+        spLabel.innerHTML = `<input type="radio" name="specialization" value="${sp}"> ${specializations[sp]}`;
+        specializationSection.appendChild(spLabel);
+
+        if(sp==="ICT"){
+          const nestedDiv = document.createElement("div");
+          nestedDiv.className="nested-specialization";
+          Object.keys(ictNested).forEach(opt=>{
+            nestedDiv.innerHTML += `<label><input type="checkbox" name="ictSpecialization" value="${opt}"> ${ictNested[opt]}</label>`;
+          });
+          spLabel.appendChild(nestedDiv);
+          spLabel.querySelector('input[type="radio"]').addEventListener('change', ()=>{
+            nestedDiv.style.display='block';
+          });
+        }
+      });
+    }
+  });
+});
+
+/* SUBMIT FORM */
+document.getElementById("shsForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const lrn = document.getElementById("lrn").value.trim();
+  const q = query(collection(db,"applications"),where("lrn","==",lrn));
+  const snapshot = await getDocs(q);
+  if(!snapshot.empty){ alert("This LRN is already registered!"); return; }
+
+  const strandValue = document.querySelector('input[name="strand"]:checked')?.value || "";
+  let specializationValue = "None";
+  if(strandValue==="TVL"){
+    const spSelected = document.querySelector('input[name="specialization"]:checked');
+    specializationValue = spSelected ? specializations[spSelected.value] : "None";
+    if(spSelected?.value==="ICT"){
+      const ictOpts = Array.from(document.querySelectorAll('input[name="ictSpecialization"]:checked')).map(i=>ictNested[i.value]);
+      specializationValue += ictOpts.length ? " ("+ictOpts.join(", ")+")" : "";
+    }
+  }
+
+  const data = {
+    lrn,
+    givenName: givenName.value,
+    middleName: middleName.value,
+    surname: surname.value,
+    dob: dob.value,
+    birthPlace: birthPlace.value,
+    sex: sex.value,
+    email: email.value,
+    phone: phone.value,
+    location:{
+      barangay:barangay.value,
+      city:city.value,
+      province:province.value,
+      region:region.value,
+      zip:zip.value
+    },
+    strand: strandValue,
+    specialization: specializationValue
+  };
+
+  try{
+    await addDoc(collection(db,"applications"),data);
+    // Disable entire form
+    document.getElementById("shsForm").querySelectorAll("input, select, button").forEach(el => el.disabled = true);
+    alert("Enrollment successful!");
+    // Redirect to profile page
+    window.location.href = `profile.html?lrn=${lrn}`;
+  }catch(err){alert("Error: "+err.message);}
+});
+</script>
+</body>
+</html>
+
   padding: 30px;
   margin: 30px 0;
   box-shadow:0 6px 20px rgba(0,0,0,0.3);
@@ -237,3 +469,4 @@ document.getElementById('applicantForm').addEventListener('submit', async e=>{
 
 </body>
 </html>
+
