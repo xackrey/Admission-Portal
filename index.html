@@ -4,14 +4,55 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LYFJRSHS Admission Portal</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
-<!-- Firebase SDK -->
+<style>
+body {
+  margin:0; font-family:Arial,sans-serif;
+  height:100vh; display:flex; justify-content:center; align-items:center;
+  background:url('image.jpg') no-repeat center center fixed;
+  background-size:cover;
+}
+.container{
+  background:rgba(255,255,255,0.95); padding:40px 30px; width:360px;
+  border-radius:20px; box-shadow:0 15px 40px rgba(0,0,0,0.3);
+  text-align:center; backdrop-filter:blur(5px);
+}
+button{width:95%; padding:12px; margin-top:15px; border:none;
+  border-radius:10px; background:#f44336; color:white; cursor:pointer; font-weight:bold;
+}
+button:hover{background:#d32f2f;}
+#codeSection{display:none;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Login with Google</h2>
+  <div id="g_id_onload"
+       data-client_id="113380731276-thphd4f39c218f40b6e47lk09ndomd35.apps.googleusercontent.com"
+       data-login_uri=""
+       data-auto_prompt="false"
+       data-callback="handleCredentialResponse">
+  </div>
+  <div class="g_id_signin" data-type="standard"></div>
+
+  <!-- Confirmation code -->
+  <div id="codeSection">
+    <h3>Enter Confirmation Code</h3>
+    <input type="text" id="confirmCode" placeholder="6-digit code">
+    <p id="timer"></p>
+    <button id="verifyBtn">Verify Code</button>
+    <button id="resendBtn" disabled>Resend Code</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, signInWithCredential, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
   authDomain: "admissionportal-ec954.firebaseapp.com",
@@ -22,148 +63,67 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Global
-window.isLogin = true;
-window.generatedCode = "";
-window.countdownInterval = null;
+let generatedCode = "";
+let countdown;
+let countdownTime = 120; // 2 minutes
+let resendTimeout = 60; // 1 min
 
-// Login/Signup button
-window.loginOrSignup = async function() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const formSection = document.getElementById("formSection");
-  const codeSection = document.getElementById("codeSection");
+function startCountdown() {
+  const timerEl = document.getElementById("timer");
+  let timeLeft = countdownTime;
+  timerEl.textContent = `Time left: ${timeLeft}s`;
 
-  if(!email || !password) return alert("Fill in all fields");
-
-  if(window.isLogin) {
-    // LOGIN
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      alert("Login successful!");
-      window.location.href = `applicationprofile.html?uid=${userCredential.user.uid}`;
-    } catch(error) {
-      alert(error.message);
+  countdown = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = `Time left: ${timeLeft}s`;
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+      alert("Code expired! Resend to get a new code.");
+      document.getElementById("resendBtn").disabled = false;
     }
-  } else {
-    // SIGN-UP: generate code
-    window.generatedCode = Math.floor(100000 + Math.random()*900000).toString();
-    alert("Your verification code is: " + window.generatedCode);
+  }, 1000);
+}
 
-    formSection.style.display = "none";
-    codeSection.style.display = "block";
-    startCountdown(120); // 2 minutes
+function sendCode() {
+  generatedCode = Math.floor(100000 + Math.random()*900000).toString();
+  alert("Your confirmation code is: " + generatedCode);
+  document.getElementById("codeSection").style.display = "block";
+  startCountdown();
+
+  document.getElementById("resendBtn").disabled = true;
+  setTimeout(()=> document.getElementById("resendBtn").disabled = false, resendTimeout*1000);
+}
+
+window.handleCredentialResponse = async function(response){
+  // Get Google credential
+  const credential = GoogleAuthProvider.credential(response.credential);
+  try{
+    await signInWithCredential(auth, credential);
+    // Auto sign-up/login success
+    sendCode();
+  }catch(e){
+    console.error(e);
+    alert("Login failed!");
   }
 }
 
-// Toggle login/signup
-function toggleForm() {
-  window.isLogin = !window.isLogin;
-  document.getElementById("formTitle").innerText = window.isLogin ? "Login" : "Sign Up";
-  document.querySelector("#formSection button").innerText = window.isLogin ? "Login" : "Sign Up";
-  document.querySelector(".switch").innerText = window.isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login";
-}
-
-// Verify code
-window.verifyCode = async function() {
-  const codeInput = document.getElementById("confirmCode").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if(codeInput !== window.generatedCode) return alert("Incorrect code!");
-
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // Save empty profile in Firestore
-    await setDoc(doc(db, "applications", userCredential.user.uid), {
-      email: email,
-      strand: "",
-      specialization: "",
-      lrn: "",
-      sex: "",
-      phone: "",
-      address: "",
-      exam: { date: "", time: "" }
-    });
-
-    alert("Account created successfully!");
-    window.location.href = `applicationprofile.html?uid=${userCredential.user.uid}`;
-  } catch(error) {
-    alert(error.message);
+document.getElementById("verifyBtn").addEventListener("click", ()=>{
+  const userCode = document.getElementById("confirmCode").value.trim();
+  if(userCode === generatedCode){
+    clearInterval(countdown);
+    alert("Verified! Redirecting...");
+    window.location.href = "applicationprofile.html";
+  }else{
+    alert("Incorrect code!");
   }
-}
+});
 
-// Countdown timer
-function startCountdown(seconds) {
-  const timerDisplay = document.getElementById("timer");
-  let remaining = seconds;
-  const resendBtn = document.getElementById("resendBtn");
-  resendBtn.disabled = true;
+document.getElementById("resendBtn").addEventListener("click", ()=>{
+  sendCode();
+});
 
-  window.countdownInterval = setInterval(()=>{
-    const mins = Math.floor(remaining/60);
-    const secs = remaining % 60;
-    timerDisplay.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
-    remaining--;
-
-    if(remaining < 60) resendBtn.disabled = false; // enable resend after 1 min
-    if(remaining < 0) {
-      clearInterval(window.countdownInterval);
-      timerDisplay.innerText = "Expired!";
-    }
-  },1000);
-}
-
-// Resend code
-window.resendCode = function() {
-  window.generatedCode = Math.floor(100000 + Math.random()*900000).toString();
-  alert("Your new verification code: " + window.generatedCode);
-  startCountdown(120);
-}
 </script>
-
-<style>
-body { margin:0; font-family: Arial, sans-serif; height:100vh; display:flex; justify-content:center; align-items:center; background: url('image.jpg') no-repeat center center fixed; background-size:cover; }
-.container { background: rgba(255,255,255,0.95); padding: 40px 30px; width:360px; border-radius:20px; box-shadow:0 15px 40px rgba(0,0,0,0.3); text-align:center; backdrop-filter: blur(5px); position:relative; }
-.logo img { width:100px; border-radius:50%; margin-bottom:20px; }
-h2 { margin-bottom:20px; }
-input { width:90%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #ccc; }
-button { width:95%; padding:12px; margin-top:15px; border:none; border-radius:10px; background:#f44336; color:white; font-weight:bold; cursor:pointer; }
-button:hover { background:#d32f2f; }
-.switch { margin-top:12px; font-size:14px; cursor:pointer; color:#4CAF50; }
-.switch:hover { text-decoration: underline; }
-#codeSection { display:none; margin-top:20px; }
-#resendBtn { margin-top:10px; padding:8px 12px; background:#1976d2; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-#resendBtn:disabled { opacity:0.5; cursor:not-allowed; }
-</style>
-</head>
-<body>
-
-<div class="container">
-  <div class="logo">
-    <img src="logo.jpg" alt="LYFJRSHS Logo">
-  </div>
-
-  <h2 id="formTitle">Login</h2>
-
-  <div id="formSection">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="loginOrSignup()">Login</button>
-    <div class="switch" onclick="toggleForm()">Don't have an account? Sign Up</div>
-  </div>
-
-  <div id="codeSection">
-    <h3>Enter Verification Code</h3>
-    <input type="text" id="confirmCode" placeholder="6-digit code">
-    <p>Time remaining: <span id="timer">2:00</span></p>
-    <button onclick="verifyCode()">Verify</button>
-    <button id="resendBtn" onclick="resendCode()">Resend Code</button>
-  </div>
-</div>
-
 </body>
 </html>
