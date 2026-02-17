@@ -188,7 +188,7 @@ document.querySelectorAll('input[name="strand"]').forEach(radio=>{
           const nestedDiv = document.createElement("div");
           nestedDiv.className="nested-specialization";
           Object.keys(ictNested).forEach(opt=>{
-            nestedDiv.innerHTML += `<label><input type="checkbox" name="ictSpecialization" value="${opt}"> ${ictNested[opt]}</label>`;
+            nestedDiv.innerHTML += `<label><input type="radio" name="ictSpecialization" value="${opt}"> ${ictNested[opt]}</label>`;
           });
           spLabel.appendChild(nestedDiv);
           spLabel.querySelector('input[type="radio"]').addEventListener('change', ()=>{
@@ -469,4 +469,5 @@ document.getElementById('applicantForm').addEventListener('submit', async e=>{
 
 </body>
 </html>
+
 
