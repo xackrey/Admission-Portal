@@ -26,11 +26,13 @@ body{
 header{text-align:center;margin-bottom:25px;}
 header img{
   width:90px;
+  height:90px;
   margin:0 auto 10px auto;
   display:block;
-  border-radius:50%;      /* circular logo */
+  border-radius:50%;
   border:3px solid #4CAF50;
   object-fit:cover;
+  cursor:pointer;
 }
 h1{font-size:30px;font-weight:bold;color:#2c3e50;}
 h3{margin-top:25px;border-bottom:2px solid #ccc;padding-bottom:5px;color:#2c3e50;font-size:20px;}
@@ -43,6 +45,7 @@ input[type="text"], input[type="date"], input[type="email"], input[type="tel"], 
   border:1px solid #3498db;
   box-sizing:border-box;
 }
+input[type="file"]{display:none;}
 input[type="radio"], input[type="checkbox"]{margin-right:6px;}
 .section{
   margin-top:15px;
@@ -82,7 +85,9 @@ button:hover:not(:disabled){opacity:0.9;}
 
 <div class="container">
 <header>
-  <img src="logo.jpg" alt="School Logo">
+  <!-- Photo Upload -->
+  <img src="logo.jpg" id="profilePhoto" alt="Upload Photo" title="Click to upload">
+  <input type="file" id="photoInput" accept="image/*">
   <h1>Register Form</h1>
 </header>
 
@@ -125,6 +130,20 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+/* PHOTO UPLOAD */
+const profilePhoto = document.getElementById('profilePhoto');
+const photoInput = document.getElementById('photoInput');
+
+profilePhoto.addEventListener('click', ()=>photoInput.click());
+photoInput.addEventListener('change',(e)=>{
+  const file = e.target.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = evt => profilePhoto.src = evt.target.result;
+    reader.readAsDataURL(file);
+  }
+});
 
 /* STRAND OPTIONS */
 const strandSection = document.getElementById("strandSection");
@@ -169,9 +188,7 @@ document.querySelectorAll('input[name="strand"]').forEach(radio=>{
             nestedDiv.innerHTML += `<label><input type="radio" name="ictSpecialization" value="${opt}"> ${ictNested[opt]}</label>`;
           });
           spLabel.appendChild(nestedDiv);
-          spLabel.querySelector('input[type="radio"]').addEventListener('change', ()=>{
-            nestedDiv.style.display='block';
-          });
+          spLabel.querySelector('input[type="radio"]').addEventListener('change', ()=>{nestedDiv.style.display='block';});
         }
       });
     }
@@ -198,6 +215,7 @@ document.getElementById("shsForm").addEventListener("submit", async e=>{
   }
 
   const data = {
+    photo: profilePhoto.src,   // save photo as base64
     lrn,
     givenName: givenName.value,
     middleName: middleName.value,
@@ -220,14 +238,11 @@ document.getElementById("shsForm").addEventListener("submit", async e=>{
 
   try{
     await addDoc(collection(db,"applications"),data);
-    // Disable entire form
     document.getElementById("shsForm").querySelectorAll("input, select, button").forEach(el => el.disabled = true);
-    alert("Enrollment successful!");
-    // Redirect to profile page
+    alert("Register successful!");
     window.location.href = `profile.html?lrn=${lrn}`;
   }catch(err){alert("Error: "+err.message);}
 });
 </script>
 </body>
 </html>
-
