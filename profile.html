@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My SHS ID - LYFJRSHS</title>
+<style>
+body{margin:0;font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#4CAF50,#F44336);display:flex;justify-content:center;padding:30px 0;}
+.id-card{width:350px;background:#fff;border-radius:20px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.3);text-align:center;position:relative;}
+.id-card h2{margin:10px 0 5px 0;font-size:20px;color:#2c3e50;}
+.id-card img.photo{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #F44336;margin:10px auto;}
+#changePhotoBtn{margin-top:5px;padding:5px 10px;border:none;background:#1976d2;color:#fff;border-radius:5px;cursor:pointer;font-size:12px;}
+#changePhotoBtn:hover{opacity:0.9;}
+.info{text-align:left;margin-top:15px;}
+.info p{margin:5px 0;font-size:14px;}
+.button-group{margin-top:15px;display:flex;gap:10px;}
+button{flex:1;padding:10px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;color:white;font-size:14px;transition:0.3s;}
+#editBtn{background:#1976d2;} #logoutBtn{background:#e74c3c;} button:hover{opacity:0.9;}
+input[type="file"]{display:none;}
+#stemSchedule{display:none;margin-top:15px;background:#e8f5e9;padding:15px;border-radius:10px; border:2px solid #4CAF50;}
+#stemSchedule h3{margin:0 0 10px 0; color:#2e7d32;}
+#stemSchedule p{margin:3px 0; font-weight:bold;}
+</style>
+</head>
+<body>
+
+<div class="id-card">
+  <img class="photo" id="profilePhoto" src="logo.jpg" alt="Profile Photo"><br>
+  <button id="changePhotoBtn">Change Photo</button>
+  <input type="file" id="photoInput" accept="image/*">
+
+  <h2 id="studentName">Student Name</h2>
+
+  <div class="info">
+    <p><b>LRN:</b> <span id="lrn"></span></p>
+    <p><b>Strand:</b> <span id="strandDisplay"></span></p>
+    <p><b>Specialization:</b> <span id="specDisplay"></span></p>
+    <p><b>Sex:</b> <span id="sex"></span></p>
+    <p><b>Email:</b> <span id="email"></span></p>
+    <p><b>Phone:</b> <span id="phone"></span></p>
+    <p><b>Address:</b> <span id="address"></span></p>
+  </div>
+
+  <!-- STEM Exam Schedule -->
+  <div id="stemSchedule">
+    <h3>STEM Exam Schedule</h3>
+    <p id="examDate"></p>
+    <p id="examTime"></p>
+  </div>
+
+  <div class="button-group">
+    <button id="editBtn">Edit Info</button>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
+  authDomain:"admissionportal-ec954.firebaseapp.com",
+  projectId:"admissionportal-ec954"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Get LRN from URL
+const params = new URLSearchParams(window.location.search);
+const lrn = params.get('lrn');
+if(!lrn){ alert("No LRN found!"); }
+
+// DOM Elements
+const studentName = document.getElementById('studentName');
+const profilePhoto = document.getElementById('profilePhoto');
+const changePhotoBtn = document.getElementById('changePhotoBtn');
+const photoInput = document.getElementById('photoInput');
+const strandDisplay = document.getElementById('strandDisplay');
+const specDisplay = document.getElementById('specDisplay');
+const lrnSpan = document.getElementById('lrn');
+const sexSpan = document.getElementById('sex');
+const emailSpan = document.getElementById('email');
+const phoneSpan = document.getElementById('phone');
+const addressSpan = document.getElementById('address');
+const editBtn = document.getElementById('editBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const stemDiv = document.getElementById('stemSchedule');
+const examDateP = document.getElementById('examDate');
+const examTimeP = document.getElementById('examTime');
+
+// Change photo preview
+changePhotoBtn.addEventListener('click', ()=>photoInput.click());
+photoInput.addEventListener('change',(e)=>{
+  const file = e.target.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = evt => profilePhoto.src = evt.target.result;
+    reader.readAsDataURL(file);
+  }
+});
+
+// Fetch student info
+const q = query(collection(db,"applications"),where("lrn","==",lrn));
+const snapshot = await getDocs(q);
+if(snapshot.empty){ alert("Data not found!"); }
+else{
+  const data = snapshot.docs[0].data();
+  studentName.textContent = data.givenName + " " + (data.middleName?data.middleName+" ":"") + data.surname;
+  profilePhoto.src = data.photo || "logo.jpg";
+  strandDisplay.textContent = data.strand;
+  specDisplay.textContent = data.specialization || "None";
+  lrnSpan.textContent = data.lrn;
+  sexSpan.textContent = data.sex;
+  emailSpan.textContent = data.email;
+  phoneSpan.textContent = data.phone;
+  addressSpan.textContent = `${data.street}, ${data.houseNumber}, ${data.barangay}, ${data.city}, ${data.province}, ${data.zip}`;
+
+  // Show STEM exam schedule only for STEM students
+  if(data.strand.toUpperCase() === "STEM"){
+    const scheduleSnap = await getDoc(doc(db,"settings","stemExamSchedule"));
+    if(scheduleSnap.exists()){
+      const schedule = scheduleSnap.data();
+      stemDiv.style.display = "block";
+      examDateP.textContent = `Date: ${schedule.date}`;
+      examTimeP.textContent = `Time: ${schedule.time}`;
+    }
+  }
+}
+
+// Buttons
+editBtn.addEventListener('click', ()=>window.location.href=`applicationProfile.html?lrn=${lrn}`);
+logoutBtn.addEventListener('click', ()=>window.location.href='index.html');
+</script>
+
+</body>
+</html>
