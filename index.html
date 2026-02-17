@@ -4,127 +4,166 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LYFJRSHS Admission Portal</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
+  authDomain: "admissionportal-ec954.firebaseapp.com",
+  projectId: "admissionportal-ec954",
+  storageBucket: "admissionportal-ec954.appspot.com",
+  messagingSenderId: "182457612989",
+  appId: "1:182457612989:web:dcaa6939ea96cd5f8cd5d4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Global
+window.isLogin = true;
+window.generatedCode = "";
+window.countdownInterval = null;
+
+// Login/Signup button
+window.loginOrSignup = async function() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const formSection = document.getElementById("formSection");
+  const codeSection = document.getElementById("codeSection");
+
+  if(!email || !password) return alert("Fill in all fields");
+
+  if(window.isLogin) {
+    // LOGIN
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      alert("Login successful!");
+      window.location.href = `applicationprofile.html?uid=${userCredential.user.uid}`;
+    } catch(error) {
+      alert(error.message);
+    }
+  } else {
+    // SIGN-UP: generate code
+    window.generatedCode = Math.floor(100000 + Math.random()*900000).toString();
+    alert("Your verification code is: " + window.generatedCode);
+
+    formSection.style.display = "none";
+    codeSection.style.display = "block";
+    startCountdown(120); // 2 minutes
+  }
+}
+
+// Toggle login/signup
+function toggleForm() {
+  window.isLogin = !window.isLogin;
+  document.getElementById("formTitle").innerText = window.isLogin ? "Login" : "Sign Up";
+  document.querySelector("#formSection button").innerText = window.isLogin ? "Login" : "Sign Up";
+  document.querySelector(".switch").innerText = window.isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login";
+}
+
+// Verify code
+window.verifyCode = async function() {
+  const codeInput = document.getElementById("confirmCode").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if(codeInput !== window.generatedCode) return alert("Incorrect code!");
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // Save empty profile in Firestore
+    await setDoc(doc(db, "applications", userCredential.user.uid), {
+      email: email,
+      strand: "",
+      specialization: "",
+      lrn: "",
+      sex: "",
+      phone: "",
+      address: "",
+      exam: { date: "", time: "" }
+    });
+
+    alert("Account created successfully!");
+    window.location.href = `applicationprofile.html?uid=${userCredential.user.uid}`;
+  } catch(error) {
+    alert(error.message);
+  }
+}
+
+// Countdown timer
+function startCountdown(seconds) {
+  const timerDisplay = document.getElementById("timer");
+  let remaining = seconds;
+  const resendBtn = document.getElementById("resendBtn");
+  resendBtn.disabled = true;
+
+  window.countdownInterval = setInterval(()=>{
+    const mins = Math.floor(remaining/60);
+    const secs = remaining % 60;
+    timerDisplay.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
+    remaining--;
+
+    if(remaining < 60) resendBtn.disabled = false; // enable resend after 1 min
+    if(remaining < 0) {
+      clearInterval(window.countdownInterval);
+      timerDisplay.innerText = "Expired!";
+    }
+  },1000);
+}
+
+// Resend code
+window.resendCode = function() {
+  window.generatedCode = Math.floor(100000 + Math.random()*900000).toString();
+  alert("Your new verification code: " + window.generatedCode);
+  startCountdown(120);
+}
+</script>
+
 <style>
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  color: #fff;
-  overflow: hidden;
-}
-
-.container {
-  background: rgba(255,255,255,0.15);
-  padding: 30px;
-  border-radius: 15px;
-  text-align: center;
-  width: 90%;
-  max-width: 500px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  transition: all 0.5s ease;
-}
-
-.container img.logo {
-  width: 80px;
-  border-radius: 50%;
-  margin-bottom: 15px;
-  border: 2px solid #fff;
-}
-
-h1 {
-  margin-bottom: 20px;
-  font-size: 28px;
-  letter-spacing: 1px;
-}
-
-/* Buttons */
-button {
-  margin-top: 20px;
-  padding: 12px 25px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #3498db, #9b59b6);
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button:hover {
-  background: linear-gradient(90deg, #2980b9, #8e44ad);
-}
-
-/* Map */
-#mapContainer {
-  margin-top: 25px;
-  display: block;
-  width: 100%;
-  height: 350px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-}
-
-#mapContainer iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  border-radius: 12px;
-}
+body { margin:0; font-family: Arial, sans-serif; height:100vh; display:flex; justify-content:center; align-items:center; background: url('image.jpg') no-repeat center center fixed; background-size:cover; }
+.container { background: rgba(255,255,255,0.95); padding: 40px 30px; width:360px; border-radius:20px; box-shadow:0 15px 40px rgba(0,0,0,0.3); text-align:center; backdrop-filter: blur(5px); position:relative; }
+.logo img { width:100px; border-radius:50%; margin-bottom:20px; }
+h2 { margin-bottom:20px; }
+input { width:90%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #ccc; }
+button { width:95%; padding:12px; margin-top:15px; border:none; border-radius:10px; background:#f44336; color:white; font-weight:bold; cursor:pointer; }
+button:hover { background:#d32f2f; }
+.switch { margin-top:12px; font-size:14px; cursor:pointer; color:#4CAF50; }
+.switch:hover { text-decoration: underline; }
+#codeSection { display:none; margin-top:20px; }
+#resendBtn { margin-top:10px; padding:8px 12px; background:#1976d2; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+#resendBtn:disabled { opacity:0.5; cursor:not-allowed; }
 </style>
 </head>
 <body>
 
-<!-- Login Container -->
-<div class="container" id="loginContainer">
-  <img src="logo.jpg" alt="School Logo" class="logo">
-  <h1>LYFJRSHS Admission Portal</h1>
-<p>Login using your Gmail account</p>
-  <!-- Google Login -->
-  <div id="g_id_onload"
-       data-client_id="113380731276-thphd4f39c218f40b6e47lk09ndomd35.apps.googleusercontent.com"
-       data-callback="handleLogin"
-       data-auto_prompt="false">
+<div class="container">
+  <div class="logo">
+    <img src="logo.jpg" alt="LYFJRSHS Logo">
   </div>
-  <div class="g_id_signin"></div>
-</div>
 
-<!-- Start Container -->
-<div class="container" id="startContainer" style="display:none;">
-  <img src="logo.jpg" alt="School Logo" class="logo">
-  <h1>Welcome!</h1>
-  <p>School Location:</p>
-  <div id="mapContainer">
-    <iframe 
-      src="https://www.google.com/maps?q=LYFJRSHS+Senior+High+School+Philippines&output=embed" 
-      allowfullscreen
-      loading="lazy">
-    </iframe>
+  <h2 id="formTitle">Login</h2>
+
+  <div id="formSection">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="loginOrSignup()">Login</button>
+    <div class="switch" onclick="toggleForm()">Don't have an account? Sign Up</div>
   </div>
-  <button id="startBtn">Start Application</button>
+
+  <div id="codeSection">
+    <h3>Enter Verification Code</h3>
+    <input type="text" id="confirmCode" placeholder="6-digit code">
+    <p>Time remaining: <span id="timer">2:00</span></p>
+    <button onclick="verifyCode()">Verify</button>
+    <button id="resendBtn" onclick="resendCode()">Resend Code</button>
+  </div>
 </div>
-
-<script>
-// Google login callback
-function handleLogin(response) {
-  console.log("Google login success", response);
-  alert("Login successful!");
-  document.getElementById('loginContainer').style.display = 'none';
-  document.getElementById('startContainer').style.display = 'block';
-}
-
-// Start button redirects to ApplicationProfile.html
-document.getElementById('startBtn').addEventListener('click', ()=>{
-  window.location.href = "ApplicationProfile.html";
-});
-</script>
 
 </body>
 </html>
