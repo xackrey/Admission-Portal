@@ -9,7 +9,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -24,7 +24,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
 
 // Global
 window.isLogin = true;
@@ -123,34 +122,6 @@ window.resendCode = function(){
     alert("Your new verification code: " + window.generatedCode);
     startCountdown(120);
 }
-
-// Google login (only when clicked)
-window.googleLogin = async function(){
-    try {
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-
-        const docRef = doc(db, "applications", user.uid);
-        const docSnap = await getDoc(docRef);
-        if(!docSnap.exists()){
-            await setDoc(docRef, {
-                email: user.email,
-                strand: "",
-                specialization: "",
-                lrn: "",
-                sex: "",
-                phone: "",
-                address: "",
-                exam: { date:"", time:"" }
-            });
-            window.location.href = `applicationprofile.html?uid=${user.uid}`;
-        } else {
-            window.location.href = `profile.html?uid=${user.uid}`;
-        }
-    } catch(error) {
-        alert(error.message);
-    }
-}
 </script>
 
 <style>
@@ -220,10 +191,6 @@ button:hover { background: #d32f2f; }
         <button onclick="verifyCode()">Verify</button>
         <button id="resendBtn" onclick="resendCode()">Resend Code</button>
     </div>
-
-    <hr>
-
-    <button onclick="googleLogin()" style="background:#4285F4;">Sign in with Google</button>
 </div>
 
 <script>
