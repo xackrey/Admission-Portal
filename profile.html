@@ -89,16 +89,6 @@ const stemDiv = document.getElementById('stemSchedule');
 const examDateP = document.getElementById('examDate');
 const examTimeP = document.getElementById('examTime');
 
-// Change photo preview
-changePhotoBtn.addEventListener('click', ()=>photoInput.click());
-photoInput.addEventListener('change',(e)=>{
-  const file = e.target.files[0];
-  if(file){
-    const reader = new FileReader();
-    reader.onload = evt => profilePhoto.src = evt.target.result;
-    reader.readAsDataURL(file);
-  }
-});
 
 // Fetch student info
 const q = query(collection(db,"applications"),where("lrn","==",lrn));
@@ -129,9 +119,10 @@ else{
 }
 
 // Buttons
-editBtn.addEventListener('click', ()=>window.location.href=`applicationProfile.html?lrn=${lrn}`);
+
 logoutBtn.addEventListener('click', ()=>window.location.href='index.html');
 </script>
 
 </body>
 </html>
+
