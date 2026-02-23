@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Register Form - LYFJRSHS</title>
+<title>Application Profile - LYFJRSHS</title>
 <style>
 body{
   margin:0;
@@ -74,21 +74,15 @@ button{
 }
 button:disabled{background:gray;cursor:not-allowed;}
 button:hover:not(:disabled){opacity:0.9;}
-@media(max-width:600px){
-  .container{padding:30px 20px;}
-  h1{font-size:24px;}
-  h3{font-size:18px;}
-}
 </style>
 </head>
 <body>
 
 <div class="container">
 <header>
-  <!-- Photo Upload -->
   <img src="logo.jpg" id="profilePhoto" alt="Upload Photo" title="Click to upload">
   <input type="file" id="photoInput" accept="image/*">
-  <h1>Register Form</h1>
+  <h1>Application Profile</h1>
 </header>
 
 <form id="shsForm">
@@ -105,36 +99,38 @@ button:hover:not(:disabled){opacity:0.9;}
 <label>Phone</label><input type="tel" id="phone" required>
 
 <h3>Location</h3>
-<label>Barangay</label><input type="text" id="barangay" required>
-<label>Municipality / City</label><input type="text" id="city" required>
-<label>Province</label><input type="text" id="province" required>
-<label>Region</label><input type="text" id="region" required>
-<label>Zip Code</label><input type="text" id="zip" required>
+<label>Province</label>
+<input type="text" id="province" list="provinceList">
+<datalist id="provinceList"></datalist>
+
+<label>Municipality / City</label>
+<input type="text" id="city" list="cityList">
+<datalist id="cityList"></datalist>
+
+<label>Barangay</label>
+<input type="text" id="barangay" list="barangayList">
+<datalist id="barangayList"></datalist>
+
+<label>Region</label><input type="text" id="region">
+<label>Zip Code</label><input type="text" id="zip">
 
 <h3>Strand</h3>
 <div id="strandSection" class="section"></div>
 <div id="specializationSection" class="section"></div>
 
-<button type="submit" id="submitBtn">Submit Enrollment</button>
+<button type="submit" id="submitBtn">Submit Profile</button>
 </form>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
-  authDomain:"admissionportal-ec954.firebaseapp.com",
-  projectId:"admissionportal-ec954"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* PHOTO UPLOAD */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"; import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; const firebaseConfig = { apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs", authDomain:"admissionportal-ec954.firebaseapp.com", projectId:"admissionportal-ec954" }; const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+// DOM Elements
 const profilePhoto = document.getElementById('profilePhoto');
 const photoInput = document.getElementById('photoInput');
+const strandSection = document.getElementById("strandSection");
+const specializationSection = document.getElementById("specializationSection");
 
+// PHOTO UPLOAD
 profilePhoto.addEventListener('click', ()=>photoInput.click());
 photoInput.addEventListener('change',(e)=>{
   const file = e.target.files[0];
@@ -145,37 +141,28 @@ photoInput.addEventListener('change',(e)=>{
   }
 });
 
-/* STRAND OPTIONS */
-const strandSection = document.getElementById("strandSection");
-const specializationSection = document.getElementById("specializationSection");
+// STRAND OPTIONS
 const strands = [
   {code:"HUMSS", name:"Humanities and Social Sciences (HUMSS)"},
   {code:"ABM", name:"Accountancy, Business, Management (ABM)"},
   {code:"STEM", name:"Science, Technology, Engineering, Math (STEM)"},
   {code:"TVL", name:"Technical-Vocational-Livelihood (TVL)"}
 ];
-strands.forEach(strand=>{
-  strandSection.innerHTML += `<label><input type="radio" name="strand" value="${strand.code}"> ${strand.name}</label>`;
-});
+strands.forEach(s=>strandSection.innerHTML += `<label><input type="radio" name="strand" value="${s.code}"> ${s.name}</label>`);
 
-/* SPECIALIZATIONS */
+// SPECIALIZATIONS
 const specializations = {
-  "AFA":"Agri-Fishery Arts (AFA)",
   "HE":"Home Economics (HE)",
   "IA":"Industrial Arts (IA)",
   "ICT":"Information and Communication Technology (ICT)"
 };
-const ictNested = {
-  "CP":"Computer Programming (CP)",
-  "CSS":"Computer Systems Servicing (CSS)"
-};
+const ictNested = { "CP":"Computer Programming (CP)", "CSS":"Computer Systems Servicing (CSS)" };
 
 document.querySelectorAll('input[name="strand"]').forEach(radio=>{
   radio.addEventListener("change", function(){
     specializationSection.innerHTML = "";
-    document.querySelectorAll('.nested-specialization').forEach(el=>el.style.display='none');
     if(this.value==="TVL"){
-      specializationSection.innerHTML = "<h3>Specialization</h3>";
+      specializationSection.innerHTML="<h3>Specialization</h3>";
       Object.keys(specializations).forEach(sp=>{
         const spLabel = document.createElement("label");
         spLabel.innerHTML = `<input type="radio" name="specialization" value="${sp}"> ${specializations[sp]}`;
@@ -195,14 +182,35 @@ document.querySelectorAll('input[name="strand"]').forEach(radio=>{
   });
 });
 
-/* SUBMIT FORM */
+// PHILIPPINES LOCATIONS DATA (sample, expand as needed)
+const locations = [
+  {province:"Metro Manila", city:"Makati", barangay:"Bel-Air"},
+  {province:"Metro Manila", city:"Makati", barangay:"San Lorenzo"},
+  {province:"Cavite", city:"Santa Rosa", barangay:"Balibago"},
+  {province:"Cavite", city:"Cavite City", barangay:"Poblacion"},
+];
+
+// Populate datalists
+const provinceList = document.getElementById("provinceList");
+const cityList = document.getElementById("cityList");
+const barangayList = document.getElementById("barangayList");
+
+[...new Set(locations.map(l=>l.province))].forEach(p=>provinceList.innerHTML += `<option value="${p}">`);
+[...new Set(locations.map(l=>l.city))].forEach(c=>cityList.innerHTML += `<option value="${c}">`);
+[...new Set(locations.map(l=>l.barangay))].forEach(b=>barangayList.innerHTML += `<option value="${b}">`);
+
+// Auto-fill city & province based on barangay
+document.getElementById("barangay").addEventListener("input", function(){
+  const selected = locations.find(l=>l.barangay.toLowerCase() === this.value.toLowerCase());
+  if(selected){
+    document.getElementById("city").value = selected.city;
+    document.getElementById("province").value = selected.province;
+  }
+});
+
+// SUBMIT FORM
 document.getElementById("shsForm").addEventListener("submit", async e=>{
   e.preventDefault();
-  const lrn = document.getElementById("lrn").value.trim();
-  const q = query(collection(db,"applications"),where("lrn","==",lrn));
-  const snapshot = await getDocs(q);
-  if(!snapshot.empty){ alert("This LRN is already registered!"); return; }
-
   const strandValue = document.querySelector('input[name="strand"]:checked')?.value || "";
   let specializationValue = "None";
   if(strandValue==="TVL"){
@@ -215,33 +223,34 @@ document.getElementById("shsForm").addEventListener("submit", async e=>{
   }
 
   const data = {
-    photo: profilePhoto.src,   // save photo as base64
-    lrn,
-    givenName: givenName.value,
-    middleName: middleName.value,
-    surname: surname.value,
-    dob: dob.value,
-    birthPlace: birthPlace.value,
-    sex: sex.value,
-    email: email.value,
-    phone: phone.value,
+    photo: profilePhoto.src,
+    lrn: document.getElementById("lrn").value,
+    givenName: document.getElementById("givenName").value,
+    middleName: document.getElementById("middleName").value,
+    surname: document.getElementById("surname").value,
+    dob: document.getElementById("dob").value,
+    birthPlace: document.getElementById("birthPlace").value,
+    sex: document.getElementById("sex").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
     location:{
-      barangay:barangay.value,
-      city:city.value,
-      province:province.value,
-      region:region.value,
-      zip:zip.value
+      province: document.getElementById("province").value,
+      city: document.getElementById("city").value,
+      barangay: document.getElementById("barangay").value,
+      region: document.getElementById("region").value,
+      zip: document.getElementById("zip").value
     },
     strand: strandValue,
     specialization: specializationValue
   };
 
   try{
-    await addDoc(collection(db,"applications"),data);
-    document.getElementById("shsForm").querySelectorAll("input, select, button").forEach(el => el.disabled = true);
-    alert("Register successful!");
-    window.location.href = `profile.html?lrn=${lrn}`;
-  }catch(err){alert("Error: "+err.message);}
+    await setDoc(doc(db,"applications",data.lrn), data); // use LRN as document ID
+    alert("Profile submitted successfully!");
+    window.location.href = "profile.html?uid="+data.lrn;
+  }catch(err){
+    alert("Error: "+err.message);
+  }
 });
 </script>
 </body>
