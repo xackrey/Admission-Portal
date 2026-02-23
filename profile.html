@@ -3,132 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profile - LYFJRSHS</title>
+<title>Student Profile - LYFJRSHS</title>
 <style>
-body{margin:0;font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#4CAF50,#F44336);display:flex;justify-content:center;padding:30px 0;}
-.id-card{width:350px;background:#fff;border-radius:20px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.3);text-align:center;position:relative;}
-.id-card h2{margin:10px 0 5px 0;font-size:20px;color:#2c3e50;}
-.id-card img.photo{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #F44336;margin:10px auto;}
-#changePhotoBtn{margin-top:5px;padding:5px 10px;border:none;background:#1976d2;color:#fff;border-radius:5px;cursor:pointer;font-size:12px;}
-#changePhotoBtn:hover{opacity:0.9;}
-.info{text-align:left;margin-top:15px;}
-.info p{margin:5px 0;font-size:14px;}
-.button-group{margin-top:15px;display:flex;gap:10px;}
-button{flex:1;padding:10px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;color:white;font-size:14px;transition:0.3s;}
-#logoutBtn{background:#e74c3c;} 
-button:hover{opacity:0.9;}
-input[type="file"]{display:none;}
-#stemSchedule{display:none;margin-top:15px;background:#e8f5e9;padding:15px;border-radius:10px; border:2px solid #4CAF50;}
-#stemSchedule h3{margin:0 0 10px 0; color:#2e7d32;}
-#stemSchedule p{margin:3px 0; font-weight:bold;}
+body {
+    margin:0;
+    font-family:Arial,sans-serif;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:url('image.jpg') no-repeat center center fixed;
+    background-size:cover;
+}
+.container {
+  background: linear-gradient(145deg, #ffffffdd, #f0f0f0dd);
+  width: 95%;
+  max-width: 800px;
+  border-radius: 15px;
+  padding: 30px;
+  margin: 30px 0;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.header h2 { margin: 0; color: #2c3e50; }
+.logout-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.logout-btn:hover { background-color: #c0392b; }
+
+.profile-card {
+  display: flex;
+  gap: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.profile-card img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #4caf50;
+}
+.profile-details {
+  flex: 1;
+}
+.profile-details h3 {
+  margin-top: 0;
+  color: #4caf50;
+}
+.profile-details p {
+  margin: 5px 0;
+  font-weight: bold;
+}
 </style>
 </head>
 <body>
 
-<div class="id-card">
-  <img class="photo" id="profilePhoto" src="logo.jpg" alt="Profile Photo"><br>
-  <button id="changePhotoBtn">Change Photo</button>
-  <input type="file" id="photoInput" accept="image/*">
-
-  <h2 id="studentName">Student Name</h2>
-
-  <div class="info">
-    <p><b>LRN:</b> <span id="lrn"></span></p>
-    <p><b>Strand:</b> <span id="strandDisplay"></span></p>
-    <p><b>Specialization:</b> <span id="specDisplay"></span></p>
-    <p><b>Sex:</b> <span id="sex"></span></p>
-    <p><b>Email:</b> <span id="email"></span></p>
-    <p><b>Phone:</b> <span id="phone"></span></p>
-    <p><b>Address:</b> <span id="address"></span></p>
+<div class="container">
+  <div class="header">
+    <h2>Student Profile</h2>
+    <button class="logout-btn" id="logout">Logout</button>
   </div>
 
-  <!-- STEM Exam Schedule -->
-  <div id="stemSchedule">
-    <h3>STEM Exam Schedule</h3>
-    <p id="examDate"></p>
-    <p id="examTime"></p>
-  </div>
-
-  <div class="button-group">
-    <button id="logoutBtn">Logout</button>
+  <div class="profile-card">
+    <img id="profilePhoto" src="logo.jpg" alt="Profile Photo">
+    <div class="profile-details">
+      <h3 id="fullName">Full Name</h3>
+      <p><b>LRN:</b> <span id="lrn">N/A</span></p>
+      <p><b>Date of Birth:</b> <span id="dob">N/A</span></p>
+      <p><b>Place of Birth:</b> <span id="birthPlace">N/A</span></p>
+      <p><b>Sex:</b> <span id="sex">N/A</span></p>
+      <p><b>Email:</b> <span id="email">N/A</span></p>
+      <p><b>Phone:</b> <span id="phone">N/A</span></p>
+      <p><b>Barangay:</b> <span id="barangay">N/A</span></p>
+      <p><b>City / Municipality:</b> <span id="city">N/A</span></p>
+      <p><b>Province:</b> <span id="province">N/A</span></p>
+      <p><b>Region:</b> <span id="region">N/A</span></p>
+      <p><b>Zip Code:</b> <span id="zip">N/A</span></p>
+      <p><b>Strand:</b> <span id="strand">N/A</span></p>
+      <p><b>Specialization:</b> <span id="specialization">N/A</span></p>
+    </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
   authDomain:"admissionportal-ec954.firebaseapp.com",
   projectId:"admissionportal-ec954"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Get LRN from URL
-const params = new URLSearchParams(window.location.search);
-const lrn = params.get('lrn');
-if(!lrn){ alert("No LRN found!"); }
-
-// DOM Elements
-const studentName = document.getElementById('studentName');
-const profilePhoto = document.getElementById('profilePhoto');
-const changePhotoBtn = document.getElementById('changePhotoBtn');
-const photoInput = document.getElementById('photoInput');
-const strandDisplay = document.getElementById('strandDisplay');
-const specDisplay = document.getElementById('specDisplay');
-const lrnSpan = document.getElementById('lrn');
-const sexSpan = document.getElementById('sex');
-const emailSpan = document.getElementById('email');
-const phoneSpan = document.getElementById('phone');
-const addressSpan = document.getElementById('address');
-const logoutBtn = document.getElementById('logoutBtn');
-const stemDiv = document.getElementById('stemSchedule');
-const examDateP = document.getElementById('examDate');
-const examTimeP = document.getElementById('examTime');
-
-// Change photo preview
-changePhotoBtn.addEventListener('click', ()=>photoInput.click());
-photoInput.addEventListener('change',(e)=>{
-  const file = e.target.files[0];
-  if(file){
-    const reader = new FileReader();
-    reader.onload = evt => profilePhoto.src = evt.target.result;
-    reader.readAsDataURL(file);
-  }
+// Logout button
+document.getElementById('logout').addEventListener('click', ()=>{
+  window.location.href = 'index.html';
 });
 
-// Fetch student info
-const q = query(collection(db,"applications"),where("lrn","==",lrn));
-const snapshot = await getDocs(q);
-if(snapshot.empty){ alert("Data not found!"); }
-else{
-  const data = snapshot.docs[0].data();
-  studentName.textContent = data.givenName + " " + (data.middleName?data.middleName+" ":"") + data.surname;
-  profilePhoto.src = data.photo || "logo.jpg";
-  strandDisplay.textContent = data.strand;
-  specDisplay.textContent = data.specialization || "None";
-  lrnSpan.textContent = data.lrn;
-  sexSpan.textContent = data.sex;
-  emailSpan.textContent = data.email;
-  phoneSpan.textContent = data.phone;
-  addressSpan.textContent = `${data.street}, ${data.houseNumber}, ${data.barangay}, ${data.city}, ${data.province}, ${data.zip}`;
+// Get UID from URL
+const params = new URLSearchParams(window.location.search);
+const uid = params.get("uid");
+if(!uid){ alert("No UID found!"); }
 
-  // Show STEM exam schedule only for STEM students
-  if(data.strand.toUpperCase() === "STEM"){
-    const scheduleSnap = await getDoc(doc(db,"settings","stemExamSchedule"));
-    if(scheduleSnap.exists()){
-      const schedule = scheduleSnap.data();
-      stemDiv.style.display = "block";
-      examDateP.textContent = `Date: ${schedule.date}`;
-      examTimeP.textContent = `Time: ${schedule.time}`;
-    }
-  }
+const docRef = doc(db,"applications",uid);
+const docSnap = await getDoc(docRef);
+if(docSnap.exists()){
+  const data = docSnap.data();
+  document.getElementById("profilePhoto").src = data.photo || "logo.jpg";
+  document.getElementById("fullName").textContent = `${data.givenName} ${data.middleName||''} ${data.surname}`;
+  document.getElementById("lrn").textContent = data.lrn || "N/A";
+  document.getElementById("dob").textContent = data.dob || "N/A";
+  document.getElementById("birthPlace").textContent = data.birthPlace || "N/A";
+  document.getElementById("sex").textContent = data.sex || "N/A";
+  document.getElementById("email").textContent = data.email || "N/A";
+  document.getElementById("phone").textContent = data.phone || "N/A";
+  document.getElementById("barangay").textContent = data.location?.barangay || "N/A";
+  document.getElementById("city").textContent = data.location?.city || "N/A";
+  document.getElementById("province").textContent = data.location?.province || "N/A";
+  document.getElementById("region").textContent = data.location?.region || "N/A";
+  document.getElementById("zip").textContent = data.location?.zip || "N/A";
+  document.getElementById("strand").textContent = data.strand || "N/A";
+  document.getElementById("specialization").textContent = data.specialization || "N/A";
+} else {
+  alert("Profile not found!");
 }
-
-// Logout
-logoutBtn.addEventListener('click', ()=>window.location.href='index.html');
 </script>
 
 </body>
