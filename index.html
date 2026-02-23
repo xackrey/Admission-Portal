@@ -4,14 +4,102 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LYFJRSHS Admission Portal</title>
+<link rel="icon" href="logo.jpg">
 
-<!-- Firebase SDKs -->
+<style>
+body {
+    margin:0;
+    font-family:Arial,sans-serif;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:url('image.jpg') no-repeat center center fixed;
+    background-size:cover;
+}
+
+.container {
+    background:rgba(255,255,255,0.95);
+    padding:40px 30px;
+    width:360px;
+    border-radius:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.3);
+    text-align:center;
+}
+
+.logo img {
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    margin-bottom:20px;
+}
+
+input {
+    width:90%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button {
+    width:95%;
+    padding:12px;
+    margin-top:15px;
+    border:none;
+    border-radius:10px;
+    background:#f44336;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover { background:#d32f2f; }
+
+.switch {
+    margin-top:12px;
+    font-size:14px;
+    cursor:pointer;
+    color:#4CAF50;
+}
+
+.switch:hover { text-decoration:underline; }
+
+#codeSection { display:none; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="logo">
+<img src="logo.jpg">
+<h2>LYFJRSHS Admission Portal</h2>
+</div>
+
+<h2 id="formTitle">Login</h2>
+
+<div id="formSection">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button id="mainBtn">Login</button>
+<div class="switch" id="switchBtn">Don't have an account? Sign Up</div>
+</div>
+
+<div id="codeSection">
+<h3>Enter Verification Code</h3>
+<input type="text" id="confirmCode" placeholder="6-digit code">
+<button id="verifyBtn">Verify</button>
+</div>
+
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
     apiKey:"AIzaSyBd0qUeuZr68Cf10bomf0mQEcjuNaE6Krs",
     authDomain:"admissionportal-ec954.firebaseapp.com",
@@ -22,185 +110,90 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-// Global
-window.isLogin = true;
-window.generatedCode = "";
-window.countdownInterval = null;
+let isLogin = true;
+let generatedCode = "";
+let savedEmail = "";
+let savedPassword = "";
 
-// Login or Sign-Up
-window.loginOrSignup = async function() {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const formSection = document.getElementById("formSection");
-    const codeSection = document.getElementById("codeSection");
+// SWITCH LOGIN / SIGN UP
+document.getElementById("switchBtn").addEventListener("click", () => {
+    isLogin = !isLogin;
 
-    if(!email || !password) return alert("Fill in all fields!");
-
-    if(window.isLogin) {
-        // LOGIN
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            // Check if profile exists
-            const docRef = doc(db, "applications", userCredential.user.uid);
-            const docSnap = await getDoc(docRef);
-            if(!docSnap.exists()){
-                window.location.href = `applicationprofile.html?uid=${userCredential.user.uid}`;
-            } else {
-                window.location.href = `profile.html?uid=${userCredential.user.uid}`;
-            }
-        } catch(error) {
-            alert(error.message);
-        }
+    if(isLogin){
+        document.getElementById("formTitle").innerText = "Login";
+        document.getElementById("mainBtn").innerText = "Login";
+        document.getElementById("switchBtn").innerText = "Don't have an account? Sign Up";
     } else {
-        // SIGN-UP: generate verification code
-        window.generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-        alert("Your verification code is: " + window.generatedCode);
-
-        formSection.style.display = "none";
-        codeSection.style.display = "block";
-        startCountdown(120);
+        document.getElementById("formTitle").innerText = "Sign Up";
+        document.getElementById("mainBtn").innerText = "Sign Up";
+        document.getElementById("switchBtn").innerText = "Already have an account? Login";
     }
+});
+
+// LOGIN OR SIGNUP
+document.getElementById("mainBtn").addEventListener("click", async () => {
+
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value.trim();
+
+if(!email || !password){
+    alert("Please fill all fields!");
+    return;
 }
 
-// Verify code
-window.verifyCode = async function() {
-    const codeInput = document.getElementById("confirmCode").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if(codeInput !== window.generatedCode) return alert("Incorrect code!");
-
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-        // Save empty profile in Firestore
-        await setDoc(doc(db, "applications", userCredential.user.uid), {
-            email: email,
-            strand: "",
-            specialization: "",
-            lrn: "",
-            sex: "",
-            phone: "",
-            address: "",
-            exam: { date:"", time:"" }
-        });
-
-        alert("Account created successfully!");
-        window.location.href = `applicationprofile.html?uid=${userCredential.user.uid}`;
-    } catch(error) {
+if(isLogin){
+    // LOGIN
+    try{
+        const user = await signInWithEmailAndPassword(auth,email,password);
+        window.location.href = "profile.html?uid=" + user.user.uid;
+    }catch(error){
         alert(error.message);
     }
 }
+else{
+    // SIGN UP
+    savedEmail = email;
+    savedPassword = password;
 
-// Countdown timer
-function startCountdown(seconds){
-    const timerDisplay = document.getElementById("timer");
-    let remaining = seconds;
-    const resendBtn = document.getElementById("resendBtn");
-    resendBtn.disabled = true;
+    generatedCode = Math.floor(100000 + Math.random()*900000).toString();
+    alert("Verification Code: " + generatedCode);
 
-    window.countdownInterval = setInterval(()=>{
-        const mins = Math.floor(remaining/60);
-        const secs = remaining % 60;
-        timerDisplay.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
-        remaining--;
+    document.getElementById("formSection").style.display = "none";
+    document.getElementById("codeSection").style.display = "block";
+}
+});
 
-        if(remaining < 60) resendBtn.disabled = false;
-        if(remaining < 0){
-            clearInterval(window.countdownInterval);
-            timerDisplay.innerText = "Expired!";
-        }
-    },1000);
+// VERIFY CODE
+document.getElementById("verifyBtn").addEventListener("click", async () => {
+
+const inputCode = document.getElementById("confirmCode").value.trim();
+
+if(inputCode !== generatedCode){
+    alert("Incorrect Code!");
+    return;
 }
 
-// Resend verification code
-window.resendCode = function(){
-    window.generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-    alert("Your new verification code: " + window.generatedCode);
-    startCountdown(120);
-}
-</script>
+try{
+    const user = await createUserWithEmailAndPassword(auth,savedEmail,savedPassword);
 
-<style>
-body {
-    margin:0; font-family:Arial,sans-serif; height:100vh;
-    display:flex; justify-content:center; align-items:center;
-    background: url('image.jpg') no-repeat center center fixed;
-    background-size: cover;
-}
+    await setDoc(doc(db,"applications",user.user.uid),{
+        email:savedEmail,
+        strand:"",
+        specialization:""
+    });
 
-.container {
-    background: rgba(255,255,255,0.95); padding:40px 30px;
-    width:360px; border-radius:20px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-    text-align:center; backdrop-filter: blur(5px);
-    position:relative;
+    alert("Account Created!");
+    window.location.href = "applicationprofile.html?uid=" + user.user.uid;
+
+}catch(error){
+    alert(error.message);
 }
 
-.logo img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    margin-bottom: 20px;
-}
+});
 
-h2 { margin-bottom:20px; }
-input {
-    width: 90%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #ccc;
-}
-button {
-    width:95%; padding:12px; margin-top:15px; border:none; border-radius:10px;
-    background: #f44336; color:white; font-weight:bold; cursor:pointer;
-}
-button:hover { background: #d32f2f; }
-
-.switch {
-    margin-top:12px; font-size:14px; cursor:pointer; color:#4CAF50;
-}
-.switch:hover { text-decoration: underline; }
-
-#codeSection { display:none; margin-top:20px; }
-#resendBtn { margin-top:10px; padding:8px 12px; background:#1976d2; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-#resendBtn:disabled { opacity:0.5; cursor:not-allowed; }
-</style>
-</head>
-<body>
-
-<div class="container">
-    <div class="logo">
-        <img src="logo.jpg" alt="LYFJRSHS Logo">
-        <h2>LYFJRSHS Admission Portal</h2>
-    </div>
-
-    <h2 id="formTitle">Login</h2>
-
-    <div id="formSection">
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button onclick="loginOrSignup()">Login</button>
-        <div class="switch" onclick="toggleForm()">Don't have an account? Sign Up</div>
-    </div>
-
-    <div id="codeSection">
-        <h3>Enter Verification Code</h3>
-        <input type="text" id="confirmCode" placeholder="6-digit code">
-        <p>Time remaining: <span id="timer">2:00</span></p>
-        <button onclick="verifyCode()">Verify</button>
-        <button id="resendBtn" onclick="resendCode()">Resend Code</button>
-    </div>
-</div>
-
-<script>
-window.isLogin = true;
-function toggleForm(){
-    window.isLogin = !window.isLogin;
-    document.getElementById("formTitle").innerText = window.isLogin ? "Login" : "Sign Up";
-    document.querySelector("#formSection button").innerText = window.isLogin ? "Login" : "Sign Up";
-    document.querySelector(".switch").innerText = window.isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login";
-}
 </script>
 
 </body>
